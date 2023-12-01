@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"macro":["embedded_hal_async_delay_impl_fugit32","embedded_hal_async_delay_impl_fugit64","embedded_hal_delay_impl_fugit32","embedded_hal_delay_impl_fugit64"],"struct":["TimeoutError","TimerQueue"],"trait":["Monotonic"]};
