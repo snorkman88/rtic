@@ -3,12 +3,15 @@
 #![no_main]
 #![no_std]
 
+use defmt::Format;
+use mcp25xx::CanFrame;
 use panic_halt as _;
+
 
 #[rtic::app(device = stm32f4xx_hal::pac, peripherals = true,  dispatchers = [SPI2])]
 mod app {
 
-    use defmt::panic;
+    use defmt::{panic, Formatter, Format};
     use defmt_rtt as _;
 
     use stm32f4xx_hal::pac::SPI1;
@@ -23,7 +26,7 @@ mod app {
     use embedded_can::nb::Can;
     use embedded_hal_bus::spi::{ExclusiveDevice, NoDelay};
 
-    use embedded_can::{Frame, StandardId};
+    use embedded_can::{Frame, StandardId, Id};
     use mcp25xx::bitrates::clock_16mhz::CNF_500K_BPS;
     use mcp25xx::registers::{OperationMode, RXB0CTRL, RXM};
     use mcp25xx::{CanFrame, Config, MCP25xx};
@@ -42,7 +45,6 @@ mod app {
         delay: timer::DelayMs<TIM1>,
         mcp25xx: MCP25xx<ExclusiveDevice<Spi<SPI1>, Pin<'A', 4, Output>, NoDelay>>,
     }
-
 
 
     #[init]
@@ -113,31 +115,35 @@ mod app {
         mcp25xx.apply_config(&config).unwrap();
 
         // Send a frame without RTR bit set
-        let can_id = StandardId::new(123).unwrap();
-        let data = [1, 2, 3, 4, 5, 6, 7, 8];
-        let frame = CanFrame::new(can_id, &data).unwrap();
-        mcp25xx.transmit(&frame).unwrap();
+        //let can_id = StandardId::new(123).unwrap();
+        //let data = [1, 2, 3, 4, 5, 6, 7, 8];
+        //let frame = CanFrame::new(can_id, &data).unwrap();
+        //mcp25xx.transmit(&frame).unwrap();
 
-        // Send a frame with RTR bit set and a datalength of 8
+        // Send a frame with RTR bit set and a datalength of 8is
         let can_id = StandardId::new(333).unwrap();
         let frame = CanFrame::new_remote(can_id, 0).unwrap();
+        if frame.is_remote_frame(){
+            defmt::info!("HEY HEY RTR IS SET!!!")
+        }
         mcp25xx.transmit(&frame).unwrap();
 
         // Receive a frame
         defmt::info!("Reading ");
         loop {
             if let Ok(frame) = mcp25xx.receive() {
-                //if frame.is_remote_frame(){
-                //    defmt::debug!("Received an RTR frame {:?}");
-                //}
-                //else{
-                //    defmt::debug!("Received an DATA frame",frame.clone());
-                //}
+                if frame.is_remote_frame(){
+                    defmt::info!("Received an RTR frame ");
+                    //defmt::debug!("Received an RTR frame {:?}", frame.clone());
+                }
+                else{
+                    defmt::info!("Received a DATA frame ");
+                    //defmt::debug!("Received a DATA frame ",frame.clone());
+                }
                 let _can_id = frame.id();
-                
-                defmt::info!("Received an DATA frame {:?}",frame.clone());
                 let _data = frame.data();
                 defmt::info!("Incoming Data: {=[u8]:X}", _data);
+                //defmt::info!("DLC {:?}", frame.dlc.rtr())
             }
         }
 
