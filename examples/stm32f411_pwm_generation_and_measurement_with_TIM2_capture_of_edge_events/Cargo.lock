@@ -725,7 +725,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "stm32f411_pwm_generation_and_dwt_cycle_counter"
+name = "stm32f411_pwm_generation_and_measurement_with_TIM2_capture_of_edge_events"
 version = "0.1.0"
 dependencies = [
  "cortex-m",
